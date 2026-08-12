@@ -10,17 +10,15 @@ import {
     TouchableOpacity
 } from 'react-native';
 
-import {
-    NativeStackScreenProps,
-} from '@react-navigation/native-stack';
-
+import { NativeStackScreenProps, } from '@react-navigation/native-stack';
 import Logo from '@/components/Logo';
 import Input from '@/components/Input';
 import Button from '@/components/Button';
+
 import { loginComGoogle } from "@/services/googleAuth";
 
 import { RootStackParamList } from '@/navigation/AppRoutes';
-
+import { FontAwesome } from '@expo/vector-icons';
 import { style } from './style';
 
 type Props = NativeStackScreenProps<
@@ -33,27 +31,13 @@ export default function Login({ navigation }: Props) {
     const [email, setEmail] = useState('');
     const [senha, setSenha] = useState('');
 
-    // const handleGoogleLogin = async () => {
-    //     try {
-    //         const response = await loginComGoogle();
-
-    //         console.log("Login realizado:", response);
-
-    //     } catch (error) {
-    //         console.error("Falha no login:", error);
-    //     }
-    // };
-
     const handleGoogleLogin = async () => {
         try {
             const response = await loginComGoogle();
 
             console.log("Login realizado:", response);
 
-            Alert.alert(
-                "Login realizado",
-                "Autenticação com Google realizada com sucesso."
-            );
+            navigation.replace('Home');
 
         } catch (error) {
 
@@ -67,7 +51,6 @@ export default function Login({ navigation }: Props) {
     };
 
     function handleLogin() {
-
         if (
             email === 'admin@email.com' &&
             senha === '123456'
@@ -85,7 +68,6 @@ export default function Login({ navigation }: Props) {
     }
 
     return (
-
         <KeyboardAvoidingView
             style={style.container}
             behavior={
@@ -94,29 +76,22 @@ export default function Login({ navigation }: Props) {
                     : undefined
             }
         >
-
             <ScrollView
                 contentContainerStyle={style.content}
                 keyboardShouldPersistTaps="handled"
                 showsVerticalScrollIndicator={false}
             >
-
                 <View style={style.header}>
-
                     <Logo size={150} />
-
                     <Text style={style.title}>
                         Bem-vindo!
                     </Text>
-
                     <Text style={style.subtitle}>
                         Entre para continuar
                     </Text>
-
                 </View>
 
                 <View style={style.form}>
-
                     <Input
                         label="E-mail"
                         placeholder="Digite seu e-mail"
@@ -151,21 +126,20 @@ export default function Login({ navigation }: Props) {
                     </View>
 
                     <TouchableOpacity
+                        style={style.googleButton}
                         onPress={handleGoogleLogin}
+                        activeOpacity={0.8}
                     >
-                        <Text>Entrar com Google</Text>
+                        <FontAwesome
+                            name="google"
+                            size={22}
+                            color="#4285F4"
+                        />
+
+                        <Text style={style.googleButtonText}>
+                            Entrar com Google
+                        </Text>
                     </TouchableOpacity>
-
-                    {/* <Button
-                        title="Continuar com Google"
-                        variant="google"
-                        onPress={() => { }}
-                        disabled
-                    />
-
-                    <Text style={style.googleInfo}>
-                        Login com Google estará disponível em breve.
-                    </Text> */}
 
                 </View>
 

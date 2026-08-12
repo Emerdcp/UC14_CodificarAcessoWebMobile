@@ -53,6 +53,48 @@ const style = StyleSheet.create({
         backgroundColor: colors.background,
     },
 
+    content: {
+        flex: 1,
+
+        alignItems: 'center',
+        justifyContent: 'center',
+
+        paddingHorizontal: 20,
+    },
+
+    locationIcon: {
+        fontSize: 50,
+
+        marginBottom: 10,
+    },
+
+    mapPlaceholder: {
+        fontSize: 20,
+        fontWeight: '600',
+
+        color: '#64748B',
+    },
+  
+
+    logoutButton: {
+        height: 50,
+
+        backgroundColor: '#071B33',
+
+        borderRadius: 10,
+
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+
+    logoutButtonText: {
+        color: '#FFFFFF',
+
+        fontSize: 16,
+        fontWeight: '700',
+    },
+    
+
 });
 
 export { style };

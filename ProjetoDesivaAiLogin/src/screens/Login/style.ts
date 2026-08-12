@@ -87,6 +87,31 @@ const style = StyleSheet.create({
         fontSize: 12,
         color: colors.textSecondary,
     },
+    googleButton: {
+        height: 52,
+
+        backgroundColor: '#FFFFFF',
+
+        borderWidth: 1,
+        borderColor: '#DADCE0',
+
+        borderRadius: 10,
+
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+
+        gap: 12,
+
+        marginTop: 4,
+    },
+
+    googleButtonText: {
+        fontSize: 16,
+        fontWeight: '600',
+
+        color: '#202124',
+    },
 
 });
 

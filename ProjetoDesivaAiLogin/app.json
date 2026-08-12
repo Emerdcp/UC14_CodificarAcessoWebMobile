@@ -12,6 +12,11 @@
     },
     "android": {
       "package": "com.desviaai.app",
+      "config": {
+        "googleMaps": {
+          "apiKey": "SUA_API_KEY_AQUI"
+        }
+      },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false
     },
