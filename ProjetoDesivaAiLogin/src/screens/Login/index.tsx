@@ -16,10 +16,18 @@ import Input from '@/components/Input';
 import Button from '@/components/Button';
 
 import { loginComGoogle } from "@/services/googleAuth";
+import { salvarSessao } from '@/services/session';
 
 import { RootStackParamList } from '@/navigation/AppRoutes';
 import { FontAwesome } from '@expo/vector-icons';
 import { style } from './style';
+
+import {
+    buscarUsuarioPorGoogleId,
+    cadastrarUsuario,
+    atualizarUltimoLogin
+} from '@/database/usuarioRepository';
+
 
 type Props = NativeStackScreenProps<
     RootStackParamList,
@@ -32,16 +40,90 @@ export default function Login({ navigation }: Props) {
     const [senha, setSenha] = useState('');
 
     const handleGoogleLogin = async () => {
+
         try {
+
             const response = await loginComGoogle();
 
-            console.log("Login realizado:", response);
+            if (
+                response.type !== 'success' ||
+                !response.data
+            ) {
+                throw new Error(
+                    'Não foi possível obter os dados do Google.'
+                );
+            }
+
+            const usuarioGoogle = response.data.user;
+
+            console.log(
+                "Usuário Google:",
+                usuarioGoogle
+            );
+
+            const usuarioExistente =
+                await buscarUsuarioPorGoogleId(
+                    usuarioGoogle.id
+                );
+
+            if (!usuarioExistente) {
+
+                await cadastrarUsuario({
+
+                    google_id: usuarioGoogle.id,
+
+                    nome:
+                        usuarioGoogle.name ??
+                        'Usuário Google',
+
+                    email:
+                        usuarioGoogle.email,
+
+                    foto_url:
+                        usuarioGoogle.photo ?? null
+
+                });
+
+            } else {
+
+                await atualizarUltimoLogin(
+                    usuarioGoogle.id
+                );
+
+            }
+
+            /*
+             * Salva os dados básicos do usuário
+             * para manter a sessão do aplicativo.
+             */
+            await salvarSessao({
+
+                google_id: usuarioGoogle.id,
+
+                nome:
+                    usuarioGoogle.name ??
+                    'Usuário Google',
+
+                email:
+                    usuarioGoogle.email,
+
+                foto_url:
+                    usuarioGoogle.photo ?? null
+
+            });
+
+            navigation.replace('Home');
+
+
 
             navigation.replace('Home');
 
         } catch (error) {
 
-            console.error("Falha no login:", error);
+            console.error(
+                "Falha no login:",
+                error
+            );
 
             Alert.alert(
                 "Erro",
@@ -49,6 +131,7 @@ export default function Login({ navigation }: Props) {
             );
         }
     };
+
 
     function handleLogin() {
         if (

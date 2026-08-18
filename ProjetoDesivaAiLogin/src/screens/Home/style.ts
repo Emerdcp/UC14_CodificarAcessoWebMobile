@@ -43,6 +43,7 @@ const style = StyleSheet.create({
 
     map: {
         flex: 1,
+        width: '100%',
     },
 
     footer: {
@@ -74,7 +75,7 @@ const style = StyleSheet.create({
 
         color: '#64748B',
     },
-  
+
 
     logoutButton: {
         height: 50,
@@ -93,7 +94,47 @@ const style = StyleSheet.create({
         fontSize: 16,
         fontWeight: '700',
     },
-    
+    loadingMap: {
+        textAlign: 'center',
+        marginTop: 20,
+    },
+    addButton: {
+        position: 'absolute',
+
+        right: 20,
+        bottom: 90,
+
+        width: 58,
+        height: 58,
+
+        borderRadius: 29,
+
+        backgroundColor: '#00243A',
+
+        alignItems: 'center',
+        justifyContent: 'center',
+
+        elevation: 6,
+
+        shadowOffset: {
+            width: 0,
+            height: 3,
+        },
+
+        shadowOpacity: 0.25,
+
+        shadowRadius: 4,
+    },
+
+    addButtonText: {
+        color: '#FFFFFF',
+
+        fontSize: 32,
+        fontWeight: '300',
+
+        lineHeight: 36,
+    },
+
 
 });
 
