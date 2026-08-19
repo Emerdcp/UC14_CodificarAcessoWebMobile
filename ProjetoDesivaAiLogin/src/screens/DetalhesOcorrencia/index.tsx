@@ -221,16 +221,99 @@ export default function DetalhesOcorrencia({
                     </Text>
 
 
-                    <Text style={style.info}>
-                        Latitude:{' '}
-                        {ocorrencia.latitude.toFixed(6)}
-                    </Text>
+                    {/* ENDEREÇO */}
+
+                    {ocorrencia.endereco && (
+
+                        <Text
+                            style={[
+                                style.info,
+                                {
+                                    fontWeight: '700',
+                                    color: '#00263D',
+                                    fontSize: 16
+                                }
+                            ]}
+                        >
+
+                            {ocorrencia.endereco}
+
+                            {ocorrencia.numero
+                                ? `, ${ocorrencia.numero}`
+                                : ''
+                            }
+
+                        </Text>
+
+                    )}
 
 
-                    <Text style={style.info}>
-                        Longitude:{' '}
-                        {ocorrencia.longitude.toFixed(6)}
-                    </Text>
+                    {/* BAIRRO */}
+
+                    {ocorrencia.bairro && (
+
+                        <Text style={style.info}>
+
+                            Bairro:{' '}
+                            {ocorrencia.bairro}
+
+                        </Text>
+
+                    )}
+
+
+                    {/* COMPLEMENTO */}
+
+                    {ocorrencia.complemento && (
+
+                        <Text style={style.info}>
+
+                            Complemento:{' '}
+                            {ocorrencia.complemento}
+
+                        </Text>
+
+                    )}
+
+
+                    {/* CEP */}
+
+                    {ocorrencia.cep && (
+
+                        <Text style={style.info}>
+
+                            CEP:{' '}
+                            {ocorrencia.cep}
+
+                        </Text>
+
+                    )}
+
+
+                    {/* COORDENADAS */}
+
+                    <View
+                        style={{
+                            marginTop: 8
+                        }}
+                    >
+
+                        {/* <Text style={style.info}>
+
+                            Latitude:{' '}
+                            {ocorrencia.latitude.toFixed(6)}
+
+                        </Text>
+
+
+                        <Text style={style.info}>
+
+                            Longitude:{' '}
+                            {ocorrencia.longitude.toFixed(6)}
+
+                        </Text> */}
+
+                    </View>
 
                 </View>
 

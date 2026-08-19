@@ -1,190 +1,450 @@
 import { getDatabase } from './database';
 
-export type Ocorrencia = {
-    id: number;
-    usuario_id: number;
-    latitude: number;
-    longitude: number;
-    foto_uri: string | null;
-    descricao: string | null;
-    curtidas: number;
-    confirmacoes_resolvido: number;
-    status: string;
-    criado_em: string;
-    atualizado_em: string;
-};
 
-export type NovaOcorrencia = {
+/*
+ * =========================================================
+ * TIPO DA OCORRÊNCIA
+ * =========================================================
+ */
+
+export interface Ocorrencia {
+
+    id: number;
+
     usuario_id: number;
+
     latitude: number;
+
     longitude: number;
-    foto_uri?: string | null;
-    descricao?: string | null;
-};
+
+    cep: string | null;
+
+    endereco: string | null;
+
+    numero: string | null;
+
+    bairro: string | null;
+
+    complemento: string | null;
+
+    foto_uri: string | null;
+
+    descricao: string | null;
+
+    curtidas: number;
+
+    confirmacoes_resolvido: number;
+
+    status: string;
+
+    criado_em: string;
+
+    atualizado_em: string;
+}
+
+
+/*
+ * =========================================================
+ * DADOS PARA CADASTRAR
+ * =========================================================
+ */
+
+export interface NovaOcorrencia {
+
+    usuario_id: number;
+
+    latitude: number;
+
+    longitude: number;
+
+    cep?: string;
+
+    endereco?: string;
+
+    numero?: string;
+
+    bairro?: string;
+
+    complemento?: string;
+
+    foto_uri?: string;
+
+    descricao?: string;
+}
+
+
+/*
+ * =========================================================
+ * CADASTRAR OCORRÊNCIA
+ * =========================================================
+ */
 
 export async function cadastrarOcorrencia(
-    ocorrencia: NovaOcorrencia
+    dados: NovaOcorrencia
 ) {
 
-    const db = await getDatabase();
+    const db =
+        await getDatabase();
 
-    const agora = new Date().toISOString();
+    const agora =
+        new Date().toISOString();
 
-    const resultado = await db.runAsync(
-        `
-        INSERT INTO ocorrencias (
-            usuario_id,
-            latitude,
-            longitude,
-            foto_uri,
-            descricao,
-            curtidas,
-            confirmacoes_resolvido,
-            status,
-            criado_em,
-            atualizado_em
-        )
-        VALUES (?, ?, ?, ?, ?, 0, 0, 'ABERTA', ?, ?)
-        `,
-        [
-            ocorrencia.usuario_id,
-            ocorrencia.latitude,
-            ocorrencia.longitude,
-            ocorrencia.foto_uri ?? null,
-            ocorrencia.descricao ?? null,
+
+    const resultado =
+        await db.runAsync(
+
+            `
+            INSERT INTO ocorrencias (
+
+                usuario_id,
+
+                latitude,
+
+                longitude,
+
+                cep,
+
+                endereco,
+
+                numero,
+
+                bairro,
+
+                complemento,
+
+                foto_uri,
+
+                descricao,
+
+                curtidas,
+
+                confirmacoes_resolvido,
+
+                status,
+
+                criado_em,
+
+                atualizado_em
+
+            )
+
+            VALUES (
+
+                ?,
+                ?,
+                ?,
+                ?,
+                ?,
+                ?,
+                ?,
+                ?,
+                ?,
+                ?,
+                0,
+                0,
+                'ABERTA',
+                ?,
+                ?
+
+            );
+            `,
+
+            dados.usuario_id,
+
+            dados.latitude,
+
+            dados.longitude,
+
+            dados.cep ?? null,
+
+            dados.endereco ?? null,
+
+            dados.numero ?? null,
+
+            dados.bairro ?? null,
+
+            dados.complemento ?? null,
+
+            dados.foto_uri ?? null,
+
+            dados.descricao ?? null,
+
             agora,
+
             agora
-        ]
-    );
+        );
+
 
     console.log(
         'Ocorrência cadastrada. ID:',
         resultado.lastInsertRowId
     );
 
+
     return resultado.lastInsertRowId;
 }
 
+
+/*
+ * =========================================================
+ * LISTAR OCORRÊNCIAS
+ * =========================================================
+ */
+
 export async function listarOcorrencias(): Promise<Ocorrencia[]> {
 
-    const db = await getDatabase();
+    const db =
+        await getDatabase();
 
-    return await db.getAllAsync<Ocorrencia>(
-        `
-        SELECT
-            id,
-            usuario_id,
-            latitude,
-            longitude,
-            foto_uri,
-            descricao,
-            curtidas,
-            confirmacoes_resolvido,
-            status,
-            criado_em,
-            atualizado_em
-        FROM ocorrencias
-        ORDER BY criado_em DESC
-        `
-    );
+
+    const ocorrencias =
+        await db.getAllAsync<Ocorrencia>(
+
+            `
+            SELECT
+
+                id,
+
+                usuario_id,
+
+                latitude,
+
+                longitude,
+
+                cep,
+
+                endereco,
+
+                numero,
+
+                bairro,
+
+                complemento,
+
+                foto_uri,
+
+                descricao,
+
+                curtidas,
+
+                confirmacoes_resolvido,
+
+                status,
+
+                criado_em,
+
+                atualizado_em
+
+            FROM ocorrencias
+
+            ORDER BY id DESC;
+            `
+        );
+
+
+    return ocorrencias;
 }
+
+
+/*
+ * =========================================================
+ * BUSCAR OCORRÊNCIA POR ID
+ * =========================================================
+ */
 
 export async function buscarOcorrenciaPorId(
     id: number
 ): Promise<Ocorrencia | null> {
 
-    const db = await getDatabase();
+    const db =
+        await getDatabase();
 
-    const ocorrencia =
-        await db.getFirstAsync<Ocorrencia>(
+
+    const ocorrencias =
+        await db.getAllAsync<Ocorrencia>(
+
             `
-            SELECT *
+            SELECT
+
+                id,
+
+                usuario_id,
+
+                latitude,
+
+                longitude,
+
+                cep,
+
+                endereco,
+
+                numero,
+
+                bairro,
+
+                complemento,
+
+                foto_uri,
+
+                descricao,
+
+                curtidas,
+
+                confirmacoes_resolvido,
+
+                status,
+
+                criado_em,
+
+                atualizado_em
+
             FROM ocorrencias
+
             WHERE id = ?
-            LIMIT 1
+
+            LIMIT 1;
             `,
-            [id]
+
+            id
         );
 
-    return ocorrencia ?? null;
-}
-
-export async function incrementarCurtidas(
-    id: number
-) {
-
-    const db = await getDatabase();
-
-    await db.runAsync(
-        `
-        UPDATE ocorrencias
-        SET
-            curtidas = curtidas + 1,
-            atualizado_em = ?
-        WHERE id = ?
-        `,
-        [
-            new Date().toISOString(),
-            id
-        ]
-    );
-}
-
-export async function incrementarConfirmacoesResolvido(
-    id: number
-) {
-
-    const db = await getDatabase();
-
-    await db.runAsync(
-        `
-        UPDATE ocorrencias
-        SET
-            confirmacoes_resolvido =
-                confirmacoes_resolvido + 1,
-            atualizado_em = ?
-        WHERE id = ?
-        `,
-        [
-            new Date().toISOString(),
-            id
-        ]
-    );
-
-    const ocorrencia =
-        await buscarOcorrenciaPorId(id);
 
     if (
-        ocorrencia &&
-        ocorrencia.confirmacoes_resolvido >= 3
+        ocorrencias.length === 0
     ) {
 
-        await marcarComoResolvida(id);
+        return null;
     }
+
+
+    return ocorrencias[0];
 }
 
-export async function marcarComoResolvida(
-    id: number
+
+/*
+ * =========================================================
+ * INCREMENTAR CURTIDAS
+ * =========================================================
+ */
+
+export async function incrementarCurtidas(
+    ocorrenciaId: number
 ) {
 
-    const db = await getDatabase();
+    const db =
+        await getDatabase();
+
+    const agora =
+        new Date().toISOString();
+
 
     await db.runAsync(
+
         `
         UPDATE ocorrencias
+
         SET
-            status = 'RESOLVIDA',
+
+            curtidas =
+                curtidas + 1,
+
             atualizado_em = ?
-        WHERE id = ?
+
+        WHERE id = ?;
         `,
-        [
-            new Date().toISOString(),
-            id
-        ]
+
+        agora,
+
+        ocorrenciaId
+    );
+}
+
+
+/*
+ * =========================================================
+ * CONFIRMAR PROBLEMA RESOLVIDO
+ * =========================================================
+ */
+
+export async function incrementarConfirmacoesResolvido(
+    ocorrenciaId: number
+) {
+
+    const db =
+        await getDatabase();
+
+    const agora =
+        new Date().toISOString();
+
+
+    /*
+     * Primeiro incrementa a confirmação.
+     */
+
+    await db.runAsync(
+
+        `
+        UPDATE ocorrencias
+
+        SET
+
+            confirmacoes_resolvido =
+                confirmacoes_resolvido + 1,
+
+            atualizado_em = ?
+
+        WHERE id = ?;
+        `,
+
+        agora,
+
+        ocorrenciaId
     );
 
-    console.log(
-        'Ocorrência marcada como resolvida:',
-        id
-    );
+
+    /*
+     * Busca a ocorrência atualizada.
+     */
+
+    const ocorrencia =
+        await buscarOcorrenciaPorId(
+            ocorrenciaId
+        );
+
+
+    if (!ocorrencia) {
+        return;
+    }
+
+
+    /*
+     * Se atingir 3 confirmações,
+     * a ocorrência passa para RESOLVIDA.
+     */
+
+    if (
+        ocorrencia.confirmacoes_resolvido >= 3 &&
+        ocorrencia.status !== 'RESOLVIDA'
+    ) {
+
+        await db.runAsync(
+
+            `
+            UPDATE ocorrencias
+
+            SET
+
+                status = 'RESOLVIDA',
+
+                atualizado_em = ?
+
+            WHERE id = ?;
+            `,
+
+            agora,
+
+            ocorrenciaId
+        );
+
+    }
 }

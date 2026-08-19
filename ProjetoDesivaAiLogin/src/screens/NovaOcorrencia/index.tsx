@@ -11,13 +11,30 @@ import {
 } from 'react-native';
 
 import * as Location from 'expo-location';
-import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { RootStackParamList } from '@/navigation/AppRoutes';
-import { style } from './style';
-import { SafeAreaView } from 'react-native-safe-area-context';
+
+import {
+    NativeStackScreenProps
+} from '@react-navigation/native-stack';
+
+import {
+    RootStackParamList
+} from '@/navigation/AppRoutes';
+
+import {
+    SafeAreaView
+} from 'react-native-safe-area-context';
+
 import * as ImagePicker from 'expo-image-picker';
-import { cadastrarOcorrencia } from '@/database/ocorrenciaRepository';
-import { obterSessao } from '@/services/session';
+
+import {
+    cadastrarOcorrencia
+} from '@/database/ocorrenciaRepository';
+
+import {
+    obterSessao
+} from '@/services/session';
+
+import { style } from './style';
 
 
 type Props = NativeStackScreenProps<
@@ -25,21 +42,93 @@ type Props = NativeStackScreenProps<
     'NovaOcorrencia'
 >;
 
+
 export default function NovaOcorrencia({
     navigation
 }: Props) {
 
-    const [localizacao, setLocalizacao] =
+
+    /*
+     * =========================================================
+     * ESTADOS
+     * =========================================================
+     */
+
+    const [
+        localizacao,
+        setLocalizacao
+    ] =
         useState<Location.LocationObject | null>(null);
 
-    const [carregandoLocalizacao, setCarregandoLocalizacao] =
+
+    const [
+        carregandoLocalizacao,
+        setCarregandoLocalizacao
+    ] =
         useState(false);
 
-    const [foto, setFoto] =
+
+    const [
+        foto,
+        setFoto
+    ] =
         useState<string | null>(null);
 
-    const [descricao, setDescricao] =
+
+    const [
+        descricao,
+        setDescricao
+    ] =
         useState('');
+
+
+    const [
+        modoLocalizacao,
+        setModoLocalizacao
+    ] =
+        useState<'GPS' | 'ENDERECO'>('GPS');
+
+
+    const [
+        cep,
+        setCep
+    ] =
+        useState('');
+
+
+    const [
+        endereco,
+        setEndereco
+    ] =
+        useState('');
+
+
+    const [
+        numero,
+        setNumero
+    ] =
+        useState('');
+
+
+    const [
+        bairro,
+        setBairro
+    ] =
+        useState('');
+
+
+    const [
+        complemento,
+        setComplemento
+    ] =
+        useState('');
+
+
+    /*
+     * =========================================================
+     * OBTER LOCALIZAÇÃO DO GPS
+     * =========================================================
+     */
 
     async function obterLocalizacao() {
 
@@ -47,10 +136,16 @@ export default function NovaOcorrencia({
 
             setCarregandoLocalizacao(true);
 
-            const { status } =
+
+            const {
+                status
+            } =
                 await Location.requestForegroundPermissionsAsync();
 
-            if (status !== 'granted') {
+
+            if (
+                status !== 'granted'
+            ) {
 
                 Alert.alert(
                     'Permissão necessária',
@@ -60,17 +155,86 @@ export default function NovaOcorrencia({
                 return;
             }
 
+
             const local =
                 await Location.getCurrentPositionAsync({
-                    accuracy: Location.Accuracy.High
+
+                    accuracy:
+                        Location.Accuracy.High
+
                 });
 
+
             setLocalizacao(local);
+
+
+            /*
+             * Busca o endereço correspondente
+             * às coordenadas do GPS.
+             */
+
+            const enderecoObtido =
+                await Location.reverseGeocodeAsync({
+
+                    latitude:
+                        local.coords.latitude,
+
+                    longitude:
+                        local.coords.longitude
+
+                });
+
+
+            if (
+                enderecoObtido.length > 0
+            ) {
+
+                const dados =
+                    enderecoObtido[0];
+
+
+                setCep(
+                    dados.postalCode ?? ''
+                );
+
+
+                setEndereco(
+                    dados.street ??
+                    dados.name ??
+                    ''
+                );
+
+
+                setNumero(
+                    dados.streetNumber ??
+                    ''
+                );
+
+
+                /*
+                 * district = bairro
+                 */
+
+                setBairro(
+                    dados.district ??
+                    ''
+                );
+
+
+                /*
+                 * Complemento continua
+                 * sendo informado pelo usuário.
+                 */
+
+                setComplemento('');
+            }
+
 
             Alert.alert(
                 'Localização obtida',
                 'Sua localização foi registrada com sucesso.'
             );
+
 
         } catch (error) {
 
@@ -79,10 +243,12 @@ export default function NovaOcorrencia({
                 error
             );
 
+
             Alert.alert(
                 'Erro',
                 'Não foi possível obter sua localização.'
             );
+
 
         } finally {
 
@@ -91,14 +257,320 @@ export default function NovaOcorrencia({
         }
     }
 
+
+    /*
+     * =========================================================
+     * CONSULTAR CEP
+     * =========================================================
+     */
+
+    async function buscarCep(
+        cepDigitado: string
+    ) {
+
+        const cepLimpo =
+            cepDigitado.replace(/\D/g, '');
+
+        if (cepLimpo.length !== 8) {
+            return;
+        }
+
+        /*
+         * Mantém o CEP formatado imediatamente.
+         * Mesmo que a API falhe, ele continuará
+         * disponível para salvar no banco.
+         */
+        const cepFormatado =
+            `${cepLimpo.slice(0, 5)}-${cepLimpo.slice(5, 8)}`;
+
+        setCep(cepFormatado);
+
+        try {
+
+            console.log(
+                'Consultando CEP:',
+                cepLimpo
+            );
+
+            const resposta =
+                await fetch(
+                    `https://viacep.com.br/ws/${cepLimpo}/json/`
+                );
+
+            console.log(
+                'Status ViaCEP:',
+                resposta.status
+            );
+
+            if (!resposta.ok) {
+
+                throw new Error(
+                    `HTTP ${resposta.status}`
+                );
+
+            }
+
+            const dados =
+                await resposta.json();
+
+            console.log(
+                'Resposta ViaCEP:',
+                dados
+            );
+
+            /*
+             * CEP válido, mas não encontrado.
+             */
+            if (dados.erro) {
+
+                Alert.alert(
+                    'CEP não encontrado',
+                    'Não encontramos um endereço para este CEP.'
+                );
+
+                return;
+            }
+
+            /*
+             * Mantém o CEP retornado pela API.
+             */
+            setCep(
+                dados.cep ??
+                cepFormatado
+            );
+
+            /*
+             * Preenche endereço.
+             */
+            setEndereco(
+                dados.logradouro ??
+                ''
+            );
+
+            /*
+             * Preenche bairro.
+             */
+            setBairro(
+                dados.bairro ??
+                ''
+            );
+
+            /*
+             * O ViaCEP não informa número.
+             */
+            setNumero('');
+
+            /*
+             * Complemento será informado
+             * pelo usuário.
+             */
+            setComplemento('');
+
+            console.log(
+                'Endereço:',
+                dados.logradouro
+            );
+
+            console.log(
+                'Bairro:',
+                dados.bairro
+            );
+
+            console.log(
+                'Cidade:',
+                dados.localidade
+            );
+
+            console.log(
+                'UF:',
+                dados.uf
+            );
+
+        } catch (error) {
+
+            console.error(
+                'Erro ao consultar CEP:',
+                error
+            );
+
+            /*
+             * IMPORTANTE:
+             *
+             * Não apagamos o CEP.
+             *
+             * O usuário pode continuar preenchendo
+             * endereço, número e bairro manualmente.
+             */
+
+            setCep(cepFormatado);
+
+            Alert.alert(
+                'CEP',
+                'Não foi possível consultar o endereço automaticamente. O CEP foi mantido e você pode preencher os dados manualmente.'
+            );
+        }
+    }
+
+
+    /*
+     * =========================================================
+     * TRANSFORMAR ENDEREÇO EM COORDENADAS
+     * =========================================================
+     */
+
+    async function obterCoordenadasDoEndereco() {
+
+        try {
+
+            if (
+                !endereco.trim()
+            ) {
+
+                Alert.alert(
+                    'Atenção',
+                    'Informe o endereço da ocorrência.'
+                );
+
+                return false;
+            }
+
+
+            if (
+                !numero.trim()
+            ) {
+
+                Alert.alert(
+                    'Atenção',
+                    'Informe o número do endereço.'
+                );
+
+                return false;
+            }
+
+
+            const enderecoCompleto =
+                `${endereco}, ${numero}, ${bairro}, ${cep}, Brasil`;
+
+
+            console.log(
+                'Consultando endereço:',
+                enderecoCompleto
+            );
+
+
+            const resultados =
+                await Location.geocodeAsync(
+                    enderecoCompleto
+                );
+
+
+            console.log(
+                'Resultado da geocodificação:',
+                resultados
+            );
+
+
+            if (
+                resultados.length === 0
+            ) {
+
+                Alert.alert(
+                    'Endereço não encontrado',
+                    'Não foi possível localizar esse endereço. Verifique os dados informados.'
+                );
+
+                return false;
+            }
+
+
+            const coordenadas =
+                resultados[0];
+
+
+            /*
+             * Guarda as coordenadas encontradas.
+             */
+
+            setLocalizacao({
+
+                coords: {
+
+                    latitude:
+                        coordenadas.latitude,
+
+                    longitude:
+                        coordenadas.longitude,
+
+                    altitude:
+                        null,
+
+                    accuracy:
+                        coordenadas.accuracy ?? 0,
+
+                    altitudeAccuracy:
+                        null,
+
+                    heading:
+                        null,
+
+                    speed:
+                        null
+
+                },
+
+                timestamp:
+                    Date.now()
+
+            });
+
+
+            console.log(
+                'Coordenadas encontradas:',
+                coordenadas.latitude,
+                coordenadas.longitude
+            );
+
+
+            return true;
+
+
+        } catch (error) {
+
+            console.error(
+                'Erro ao localizar endereço:',
+                error
+            );
+
+
+            Alert.alert(
+                'Erro',
+                'Não foi possível localizar o endereço informado.'
+            );
+
+
+            return false;
+        }
+    }
+
+
+    /*
+     * =========================================================
+     * TIRAR FOTO
+     * =========================================================
+     */
+
     async function tirarFoto() {
 
         try {
 
             const permissao =
-                await ImagePicker.requestCameraPermissionsAsync();
+                await ImagePicker
+                    .requestCameraPermissionsAsync();
 
-            if (permissao.status !== 'granted') {
+
+            if (
+                permissao.status !== 'granted'
+            ) {
 
                 Alert.alert(
                     'Permissão necessária',
@@ -108,25 +580,34 @@ export default function NovaOcorrencia({
                 return;
             }
 
+
             const resultado =
                 await ImagePicker.launchCameraAsync({
 
-                    mediaTypes: ['images'],
+                    mediaTypes:
+                        ['images'],
 
-                    allowsEditing: true,
+                    allowsEditing:
+                        true,
 
-                    aspect: [4, 3],
+                    aspect:
+                        [4, 3],
 
-                    quality: 0.8,
+                    quality:
+                        0.8
+
                 });
 
-            if (!resultado.canceled) {
+
+            if (
+                !resultado.canceled
+            ) {
 
                 setFoto(
                     resultado.assets[0].uri
                 );
-
             }
+
 
         } catch (error) {
 
@@ -135,6 +616,7 @@ export default function NovaOcorrencia({
                 error
             );
 
+
             Alert.alert(
                 'Erro',
                 'Não foi possível acessar a câmera.'
@@ -142,14 +624,25 @@ export default function NovaOcorrencia({
         }
     }
 
+
+    /*
+     * =========================================================
+     * ESCOLHER FOTO
+     * =========================================================
+     */
+
     async function escolherFoto() {
 
         try {
 
             const permissao =
-                await ImagePicker.requestMediaLibraryPermissionsAsync();
+                await ImagePicker
+                    .requestMediaLibraryPermissionsAsync();
 
-            if (permissao.status !== 'granted') {
+
+            if (
+                permissao.status !== 'granted'
+            ) {
 
                 Alert.alert(
                     'Permissão necessária',
@@ -159,25 +652,34 @@ export default function NovaOcorrencia({
                 return;
             }
 
+
             const resultado =
                 await ImagePicker.launchImageLibraryAsync({
 
-                    mediaTypes: ['images'],
+                    mediaTypes:
+                        ['images'],
 
-                    allowsEditing: true,
+                    allowsEditing:
+                        true,
 
-                    aspect: [4, 3],
+                    aspect:
+                        [4, 3],
 
-                    quality: 0.8,
+                    quality:
+                        0.8
+
                 });
 
-            if (!resultado.canceled) {
+
+            if (
+                !resultado.canceled
+            ) {
 
                 setFoto(
                     resultado.assets[0].uri
                 );
-
             }
+
 
         } catch (error) {
 
@@ -186,6 +688,7 @@ export default function NovaOcorrencia({
                 error
             );
 
+
             Alert.alert(
                 'Erro',
                 'Não foi possível acessar a galeria.'
@@ -193,21 +696,66 @@ export default function NovaOcorrencia({
         }
     }
 
+
+    /*
+     * =========================================================
+     * SALVAR OCORRÊNCIA
+     * =========================================================
+     */
+
     async function handleSalvar() {
 
         try {
 
-            if (!localizacao) {
+            /*
+             * GPS
+             */
 
-                Alert.alert(
-                    'Atenção',
-                    'Informe a localização da ocorrência.'
-                );
+            if (
+                modoLocalizacao === 'GPS'
+            ) {
 
-                return;
+                if (
+                    !localizacao
+                ) {
+
+                    Alert.alert(
+                        'Atenção',
+                        'Use o botão "Usar minha localização" antes de registrar.'
+                    );
+
+                    return;
+                }
+
             }
 
-            if (!foto) {
+
+            /*
+             * ENDEREÇO MANUAL
+             */
+
+            else {
+
+                const enderecoLocalizado =
+                    await obterCoordenadasDoEndereco();
+
+
+                if (
+                    !enderecoLocalizado
+                ) {
+
+                    return;
+                }
+            }
+
+
+            /*
+             * FOTO
+             */
+
+            if (
+                !foto
+            ) {
 
                 Alert.alert(
                     'Atenção',
@@ -217,7 +765,14 @@ export default function NovaOcorrencia({
                 return;
             }
 
-            if (!descricao.trim()) {
+
+            /*
+             * DESCRIÇÃO
+             */
+
+            if (
+                !descricao.trim()
+            ) {
 
                 Alert.alert(
                     'Atenção',
@@ -227,32 +782,71 @@ export default function NovaOcorrencia({
                 return;
             }
 
+
+            /*
+             * SESSÃO
+             */
+
             const sessao =
                 await obterSessao();
 
-            if (!sessao) {
+
+            if (
+                !sessao
+            ) {
 
                 Alert.alert(
                     'Erro',
                     'Sua sessão não foi encontrada. Faça login novamente.'
                 );
 
-                navigation.replace('Login');
+                navigation.replace(
+                    'Login'
+                );
 
                 return;
             }
 
-            if (!sessao.id) {
+
+            if (
+                !sessao.id
+            ) {
 
                 Alert.alert(
                     'Erro',
                     'Não foi possível identificar o usuário. Faça login novamente.'
                 );
 
-                navigation.replace('Login');
+                navigation.replace(
+                    'Login'
+                );
 
                 return;
             }
+
+
+            /*
+             * SEGURANÇA
+             *
+             * Neste ponto a localização precisa existir.
+             */
+
+            if (
+                !localizacao
+            ) {
+
+                Alert.alert(
+                    'Erro',
+                    'Não foi possível determinar a localização da ocorrência.'
+                );
+
+                return;
+            }
+
+
+            /*
+             * CADASTRA NO SQLITE
+             */
 
             await cadastrarOcorrencia({
 
@@ -265,6 +859,21 @@ export default function NovaOcorrencia({
                 longitude:
                     localizacao.coords.longitude,
 
+                cep:
+                    cep.trim(),
+
+                endereco:
+                    endereco.trim(),
+
+                numero:
+                    numero.trim(),
+
+                bairro:
+                    bairro.trim(),
+
+                complemento:
+                    complemento.trim(),
+
                 foto_uri:
                     foto,
 
@@ -273,17 +882,24 @@ export default function NovaOcorrencia({
 
             });
 
+
+            /*
+             * SUCESSO
+             */
+
             Alert.alert(
                 'Ocorrência registrada',
                 'O problema foi registrado com sucesso.',
                 [
                     {
                         text: 'OK',
+
                         onPress: () =>
                             navigation.goBack()
                     }
                 ]
             );
+
 
         } catch (error) {
 
@@ -292,12 +908,20 @@ export default function NovaOcorrencia({
                 error
             );
 
+
             Alert.alert(
                 'Erro',
                 'Não foi possível registrar a ocorrência.'
             );
         }
     }
+
+
+    /*
+     * =========================================================
+     * TELA
+     * =========================================================
+     */
 
     return (
 
@@ -306,6 +930,10 @@ export default function NovaOcorrencia({
             edges={['top']}
         >
 
+            {/* ================================================= */}
+            {/* CABEÇALHO */}
+            {/* ================================================= */}
+
             <View style={style.header}>
 
                 <TouchableOpacity
@@ -313,10 +941,13 @@ export default function NovaOcorrencia({
                         navigation.goBack()
                     }
                 >
+
                     <Text style={style.back}>
                         ‹
                     </Text>
+
                 </TouchableOpacity>
+
 
                 <Text style={style.title}>
                     Nova ocorrência
@@ -324,18 +955,30 @@ export default function NovaOcorrencia({
 
             </View>
 
+
             <ScrollView
+
                 style={style.content}
+
                 contentContainerStyle={{
                     paddingBottom: 30
                 }}
+
                 showsVerticalScrollIndicator={false}
+
                 keyboardShouldPersistTaps="handled"
+
             >
+
 
                 <Text style={style.subtitle}>
                     Registre um problema encontrado na via
                 </Text>
+
+
+                {/* ================================================= */}
+                {/* LOCALIZAÇÃO */}
+                {/* ================================================= */}
 
                 <View style={style.card}>
 
@@ -343,43 +986,379 @@ export default function NovaOcorrencia({
                         📍 Localização
                     </Text>
 
+
                     <Text style={style.cardDescription}>
                         Informe onde o problema foi encontrado.
                     </Text>
 
-                    <TouchableOpacity
-                        style={style.locationButton}
-                        onPress={obterLocalizacao}
-                        disabled={carregandoLocalizacao}
-                    >
 
-                        <Text style={style.locationButtonText}>
+                    {/* OPÇÕES */}
 
-                            {carregandoLocalizacao
-                                ? 'Obtendo localização...'
-                                : 'Usar minha localização'}
+                    <View style={style.locationOptions}>
 
-                        </Text>
 
-                    </TouchableOpacity>
+                        {/* GPS */}
+
+                        <TouchableOpacity
+
+                            style={[
+
+                                style.locationOption,
+
+                                modoLocalizacao === 'GPS' &&
+                                style.locationOptionActive
+
+                            ]}
+
+                            onPress={async () => {
+
+                                setModoLocalizacao(
+                                    'GPS'
+                                );
+
+                                await obterLocalizacao();
+
+                            }}
+
+                            activeOpacity={0.8}
+
+                        >
+
+                            <Text
+
+                                style={[
+
+                                    style.locationOptionText,
+
+                                    modoLocalizacao === 'GPS' &&
+                                    style.locationOptionTextActive
+
+                                ]}
+
+                            >
+
+                                {carregandoLocalizacao
+
+                                    ? 'Obtendo localização...'
+
+                                    : '📍 Usar minha localização'
+
+                                }
+
+                            </Text>
+
+                        </TouchableOpacity>
+
+
+                        {/* ENDEREÇO */}
+
+                        <TouchableOpacity
+
+                            style={[
+
+                                style.locationOption,
+
+                                modoLocalizacao === 'ENDERECO' &&
+                                style.locationOptionActive
+
+                            ]}
+
+                            onPress={() => {
+
+                                setModoLocalizacao(
+                                    'ENDERECO'
+                                );
+
+                            }}
+
+                            activeOpacity={0.8}
+
+                        >
+
+                            <Text
+
+                                style={[
+
+                                    style.locationOptionText,
+
+                                    modoLocalizacao === 'ENDERECO' &&
+                                    style.locationOptionTextActive
+
+                                ]}
+
+                            >
+
+                                🏠 Informar endereço
+
+                            </Text>
+
+                        </TouchableOpacity>
+
+                    </View>
+
+
+                    {/* ================================================= */}
+                    {/* COORDENADAS */}
+                    {/* ================================================= */}
 
                     {localizacao && (
 
                         <Text style={style.coordinates}>
 
                             Latitude:{' '}
+
                             {localizacao.coords.latitude.toFixed(6)}
 
                             {'\n'}
 
                             Longitude:{' '}
+
                             {localizacao.coords.longitude.toFixed(6)}
 
                         </Text>
 
                     )}
 
+
+                    {/* ================================================= */}
+                    {/* ENDEREÇO ENCONTRADO */}
+                    {/* ================================================= */}
+
+                    {localizacao && endereco && (
+
+                        <View style={style.addressResult}>
+
+                            <Text
+                                style={style.addressResultTitle}
+                            >
+                                📍 Endereço encontrado
+                            </Text>
+
+
+                            <Text
+                                style={style.addressResultText}
+                            >
+
+                                {endereco}
+
+                                {numero
+                                    ? `, ${numero}`
+                                    : ''
+                                }
+
+                            </Text>
+
+
+                            {bairro && (
+
+                                <Text
+                                    style={style.addressResultText}
+                                >
+                                    {bairro}
+                                </Text>
+
+                            )}
+
+
+                            {complemento && (
+
+                                <Text
+                                    style={style.addressResultText}
+                                >
+                                    {complemento}
+                                </Text>
+
+                            )}
+
+
+                            {cep && (
+
+                                <Text
+                                    style={style.addressResultText}
+                                >
+                                    CEP: {cep}
+                                </Text>
+
+                            )}
+
+                        </View>
+
+                    )}
+
+
+                    {/* ================================================= */}
+                    {/* ENDEREÇO MANUAL */}
+                    {/* ================================================= */}
+
+                    {modoLocalizacao === 'ENDERECO' && (
+
+                        <View style={style.manualAddress}>
+
+
+                            {/* CEP */}
+
+                            <Text style={style.inputLabel}>
+                                CEP
+                            </Text>
+
+
+                            <TextInput
+
+                                style={style.input}
+
+                                placeholder="00000-000"
+
+                                placeholderTextColor="#999"
+
+                                value={cep}
+
+                                keyboardType="numeric"
+
+                                maxLength={9}
+
+                                onChangeText={(texto) => {
+
+                                    const somenteNumeros =
+                                        texto.replace(
+                                            /\D/g,
+                                            ''
+                                        );
+
+
+                                    const cepFormatado =
+
+                                        somenteNumeros.length > 5
+
+                                            ? `${somenteNumeros.slice(0, 5)}-${somenteNumeros.slice(5, 8)}`
+
+                                            : somenteNumeros;
+
+
+                                    setCep(
+                                        cepFormatado
+                                    );
+
+
+                                    if (
+                                        somenteNumeros.length === 8
+                                    ) {
+
+                                        buscarCep(
+                                            cepFormatado
+                                        );
+
+                                    }
+
+                                }}
+
+                            />
+
+
+                            {/* ENDEREÇO */}
+
+                            <Text style={style.inputLabel}>
+                                Endereço
+                            </Text>
+
+
+                            <TextInput
+
+                                style={style.input}
+
+                                placeholder="Ex: Rua das Flores"
+
+                                placeholderTextColor="#999"
+
+                                value={endereco}
+
+                                onChangeText={
+                                    setEndereco
+                                }
+
+                            />
+
+
+                            {/* NÚMERO */}
+
+                            <Text style={style.inputLabel}>
+                                Número
+                            </Text>
+
+
+                            <TextInput
+
+                                style={style.input}
+
+                                placeholder="Ex: 123"
+
+                                placeholderTextColor="#999"
+
+                                value={numero}
+
+                                onChangeText={
+                                    setNumero
+                                }
+
+                            />
+
+
+                            {/* BAIRRO */}
+
+                            <Text style={style.inputLabel}>
+                                Bairro
+                            </Text>
+
+
+                            <TextInput
+
+                                style={style.input}
+
+                                placeholder="Ex: Jardim Recanto"
+
+                                placeholderTextColor="#999"
+
+                                value={bairro}
+
+                                onChangeText={
+                                    setBairro
+                                }
+
+                            />
+
+
+                            {/* COMPLEMENTO */}
+
+                            <Text style={style.inputLabel}>
+                                Complemento
+                            </Text>
+
+
+                            <TextInput
+
+                                style={style.input}
+
+                                placeholder="Ex: Em frente à escola"
+
+                                placeholderTextColor="#999"
+
+                                value={complemento}
+
+                                onChangeText={
+                                    setComplemento
+                                }
+
+                            />
+
+                        </View>
+
+                    )}
+
                 </View>
+
+
+                {/* ================================================= */}
+                {/* FOTO */}
+                {/* ================================================= */}
 
                 <View style={style.card}>
 
@@ -387,50 +1366,84 @@ export default function NovaOcorrencia({
                         📷 Foto do problema
                     </Text>
 
+
                     <Text style={style.cardDescription}>
                         Tire uma foto ou escolha uma imagem da galeria.
                     </Text>
 
+
                     <View style={style.photoButtons}>
 
+
                         <TouchableOpacity
+
                             style={style.photoButton}
+
                             onPress={tirarFoto}
+
                             activeOpacity={0.8}
+
                         >
+
                             <Text style={style.photoButtonText}>
                                 📷 Tirar foto
                             </Text>
+
                         </TouchableOpacity>
 
+
                         <TouchableOpacity
+
                             style={style.photoButton}
+
                             onPress={escolherFoto}
+
                             activeOpacity={0.8}
+
                         >
+
                             <Text style={style.photoButtonText}>
                                 🖼️ Galeria
                             </Text>
+
                         </TouchableOpacity>
 
                     </View>
 
+
                     {foto && (
 
-                        <View style={style.photoPreviewContainer}>
+                        <View
+                            style={style.photoPreviewContainer}
+                        >
 
                             <Image
-                                source={{ uri: foto }}
+
+                                source={{
+                                    uri: foto
+                                }}
+
                                 style={style.photoPreview}
+
                             />
 
+
                             <TouchableOpacity
+
                                 style={style.removePhotoButton}
-                                onPress={() => setFoto(null)}
+
+                                onPress={() =>
+                                    setFoto(null)
+                                }
+
                             >
-                                <Text style={style.removePhotoText}>
+
+                                <Text
+                                    style={style.removePhotoText}
+                                >
                                     Remover foto
                                 </Text>
+
                             </TouchableOpacity>
 
                         </View>
@@ -439,41 +1452,71 @@ export default function NovaOcorrencia({
 
                 </View>
 
+
+                {/* ================================================= */}
+                {/* DESCRIÇÃO */}
+                {/* ================================================= */}
+
                 <View style={style.card}>
 
                     <Text style={style.cardTitle}>
                         📝 Descrição
                     </Text>
 
+
                     <Text style={style.cardDescription}>
                         Descreva o problema encontrado.
                     </Text>
 
+
                     <TextInput
+
                         style={style.descriptionInput}
+
                         placeholder="Ex: Buraco grande próximo ao ponto de ônibus..."
+
                         placeholderTextColor="#999"
+
                         value={descricao}
-                        onChangeText={setDescricao}
+
+                        onChangeText={
+                            setDescricao
+                        }
+
                         multiline
+
                         numberOfLines={4}
+
                         textAlignVertical="top"
+
                     />
 
                 </View>
 
+
+                {/* ================================================= */}
+                {/* SALVAR */}
+                {/* ================================================= */}
+
                 <TouchableOpacity
+
                     style={style.saveButton}
+
                     onPress={handleSalvar}
+
                     activeOpacity={0.8}
+
                 >
+
                     <Text style={style.saveButtonText}>
                         Registrar ocorrência
                     </Text>
+
                 </TouchableOpacity>
+
 
             </ScrollView>
 
-        </SafeAreaView >
+        </SafeAreaView>
     );
 }

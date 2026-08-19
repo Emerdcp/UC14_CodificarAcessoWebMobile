@@ -212,5 +212,87 @@ export const style = StyleSheet.create({
 
         fontWeight: '700',
     },
+    locationOptions: {
+        gap: 10,
+        marginTop: 12,
+    },
 
+    locationOption: {
+        borderWidth: 1,
+        borderColor: '#D9D9D9',
+        borderRadius: 10,
+        paddingVertical: 13,
+        alignItems: 'center',
+        backgroundColor: '#FFFFFF',
+    },
+
+    locationOptionActive: {
+        backgroundColor: '#00263D',
+        borderColor: '#00263D',
+    },
+
+    locationOptionText: {
+        fontSize: 14,
+        fontWeight: '600',
+        color: '#555555',
+    },
+
+    locationOptionTextActive: {
+        color: '#FFFFFF',
+    },
+        /* =========================================
+       CAMPOS DE ENDEREÇO
+    ========================================= */
+
+    manualAddress: {
+        marginTop: 15,
+    },
+
+    inputLabel: {
+        fontSize: 14,
+        fontWeight: '700',
+        color: '#00263D',
+        marginBottom: 6,
+        marginTop: 10,
+    },
+
+    input: {
+        backgroundColor: '#F8F9FA',
+        borderWidth: 1,
+        borderColor: '#D9DDE1',
+        borderRadius: 10,
+        paddingHorizontal: 14,
+        paddingVertical: 12,
+        fontSize: 15,
+        color: '#00263D',
+        marginBottom: 8,
+    },
+
+
+    /* =========================================
+       ENDEREÇO OBTIDO PELO GPS
+    ========================================= */
+
+    addressResult: {
+        backgroundColor: '#F1F8F4',
+        borderWidth: 1,
+        borderColor: '#CDEBD8',
+        borderRadius: 10,
+        padding: 14,
+        marginTop: 15,
+    },
+
+    addressResultTitle: {
+        fontSize: 15,
+        fontWeight: '700',
+        color: '#166534',
+        marginBottom: 8,
+    },
+
+    addressResultText: {
+        fontSize: 14,
+        color: '#555555',
+        marginBottom: 4,
+        lineHeight: 20,
+    },
 });
