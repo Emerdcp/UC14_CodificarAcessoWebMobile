@@ -92,13 +92,22 @@ export default function Login({ navigation }: Props) {
 
             }
 
+            const usuarioBanco =
+                await buscarUsuarioPorGoogleId(
+                    usuarioGoogle.id
+                );
+
             /*
              * Salva os dados básicos do usuário
              * para manter a sessão do aplicativo.
              */
             await salvarSessao({
 
-                google_id: usuarioGoogle.id,
+                id:
+                    usuarioBanco?.id,
+
+                google_id:
+                    usuarioGoogle.id,
 
                 nome:
                     usuarioGoogle.name ??
@@ -109,14 +118,10 @@ export default function Login({ navigation }: Props) {
 
                 foto_url:
                     usuarioGoogle.photo ?? null
-
             });
 
             navigation.replace('Home');
 
-
-
-            navigation.replace('Home');
 
         } catch (error) {
 
@@ -225,6 +230,8 @@ export default function Login({ navigation }: Props) {
                     </TouchableOpacity>
 
                 </View>
+
+
 
                 <Text style={style.version}>
                     Versão 1.0.0

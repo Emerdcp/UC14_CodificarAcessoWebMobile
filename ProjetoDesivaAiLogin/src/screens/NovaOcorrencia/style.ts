@@ -169,5 +169,48 @@ export const style = StyleSheet.create({
 
         fontWeight: '600',
     },
+    descriptionInput: {
+        minHeight: 110,
+
+        borderWidth: 1,
+
+        borderColor: '#ddd',
+
+        borderRadius: 10,
+
+        paddingHorizontal: 14,
+
+        paddingVertical: 12,
+
+        fontSize: 15,
+
+        color: '#333',
+
+        backgroundColor: '#fff',
+    },
+
+    saveButton: {
+        height: 52,
+
+        marginTop: 5,
+
+        marginBottom: 30,
+
+        borderRadius: 10,
+
+        backgroundColor: '#00243A',
+
+        alignItems: 'center',
+
+        justifyContent: 'center',
+    },
+
+    saveButtonText: {
+        color: '#fff',
+
+        fontSize: 16,
+
+        fontWeight: '700',
+    },
 
 });

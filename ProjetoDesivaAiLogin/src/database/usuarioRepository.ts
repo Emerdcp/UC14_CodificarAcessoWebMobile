@@ -1,11 +1,13 @@
 import { getDatabase } from './database';
 
 export type UsuarioGoogle = {
+    id?: number;
     google_id: string;
     nome: string;
     email: string;
     foto_url?: string | null;
 };
+
 
 export async function buscarUsuarioPorGoogleId(
     googleId: string
@@ -16,6 +18,7 @@ export async function buscarUsuarioPorGoogleId(
     const usuario = await db.getFirstAsync<UsuarioGoogle>(
         `
         SELECT
+            id,
             google_id,
             nome,
             email,
@@ -94,6 +97,7 @@ export async function atualizarUltimoLogin(
         'Último login atualizado.'
     );
 }
+
 
 export async function listarUsuarios() {
 

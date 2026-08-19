@@ -5,7 +5,9 @@ import {
     Text,
     TouchableOpacity,
     Alert,
-    Image
+    Image,
+    TextInput,
+    ScrollView
 } from 'react-native';
 
 import * as Location from 'expo-location';
@@ -14,6 +16,9 @@ import { RootStackParamList } from '@/navigation/AppRoutes';
 import { style } from './style';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as ImagePicker from 'expo-image-picker';
+import { cadastrarOcorrencia } from '@/database/ocorrenciaRepository';
+import { obterSessao } from '@/services/session';
+
 
 type Props = NativeStackScreenProps<
     RootStackParamList,
@@ -32,6 +37,9 @@ export default function NovaOcorrencia({
 
     const [foto, setFoto] =
         useState<string | null>(null);
+
+    const [descricao, setDescricao] =
+        useState('');
 
     async function obterLocalizacao() {
 
@@ -185,9 +193,118 @@ export default function NovaOcorrencia({
         }
     }
 
+    async function handleSalvar() {
+
+        try {
+
+            if (!localizacao) {
+
+                Alert.alert(
+                    'Atenção',
+                    'Informe a localização da ocorrência.'
+                );
+
+                return;
+            }
+
+            if (!foto) {
+
+                Alert.alert(
+                    'Atenção',
+                    'Adicione uma foto do problema.'
+                );
+
+                return;
+            }
+
+            if (!descricao.trim()) {
+
+                Alert.alert(
+                    'Atenção',
+                    'Informe uma descrição do problema.'
+                );
+
+                return;
+            }
+
+            const sessao =
+                await obterSessao();
+
+            if (!sessao) {
+
+                Alert.alert(
+                    'Erro',
+                    'Sua sessão não foi encontrada. Faça login novamente.'
+                );
+
+                navigation.replace('Login');
+
+                return;
+            }
+
+            if (!sessao.id) {
+
+                Alert.alert(
+                    'Erro',
+                    'Não foi possível identificar o usuário. Faça login novamente.'
+                );
+
+                navigation.replace('Login');
+
+                return;
+            }
+
+            await cadastrarOcorrencia({
+
+                usuario_id:
+                    sessao.id,
+
+                latitude:
+                    localizacao.coords.latitude,
+
+                longitude:
+                    localizacao.coords.longitude,
+
+                foto_uri:
+                    foto,
+
+                descricao:
+                    descricao.trim()
+
+            });
+
+            Alert.alert(
+                'Ocorrência registrada',
+                'O problema foi registrado com sucesso.',
+                [
+                    {
+                        text: 'OK',
+                        onPress: () =>
+                            navigation.goBack()
+                    }
+                ]
+            );
+
+        } catch (error) {
+
+            console.error(
+                'Erro ao cadastrar ocorrência:',
+                error
+            );
+
+            Alert.alert(
+                'Erro',
+                'Não foi possível registrar a ocorrência.'
+            );
+        }
+    }
+
     return (
 
-        <SafeAreaView style={style.container} edges={['top']}>
+        <SafeAreaView
+            style={style.container}
+            edges={['top']}
+        >
 
             <View style={style.header}>
 
@@ -207,7 +324,14 @@ export default function NovaOcorrencia({
 
             </View>
 
-            <View style={style.content}>
+            <ScrollView
+                style={style.content}
+                contentContainerStyle={{
+                    paddingBottom: 30
+                }}
+                showsVerticalScrollIndicator={false}
+                keyboardShouldPersistTaps="handled"
+            >
 
                 <Text style={style.subtitle}>
                     Registre um problema encontrado na via
@@ -315,8 +439,41 @@ export default function NovaOcorrencia({
 
                 </View>
 
-            </View>
+                <View style={style.card}>
 
-        </SafeAreaView>
+                    <Text style={style.cardTitle}>
+                        📝 Descrição
+                    </Text>
+
+                    <Text style={style.cardDescription}>
+                        Descreva o problema encontrado.
+                    </Text>
+
+                    <TextInput
+                        style={style.descriptionInput}
+                        placeholder="Ex: Buraco grande próximo ao ponto de ônibus..."
+                        placeholderTextColor="#999"
+                        value={descricao}
+                        onChangeText={setDescricao}
+                        multiline
+                        numberOfLines={4}
+                        textAlignVertical="top"
+                    />
+
+                </View>
+
+                <TouchableOpacity
+                    style={style.saveButton}
+                    onPress={handleSalvar}
+                    activeOpacity={0.8}
+                >
+                    <Text style={style.saveButtonText}>
+                        Registrar ocorrência
+                    </Text>
+                </TouchableOpacity>
+
+            </ScrollView>
+
+        </SafeAreaView >
     );
 }

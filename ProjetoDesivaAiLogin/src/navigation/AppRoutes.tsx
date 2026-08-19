@@ -5,11 +5,15 @@ import Login from '@/screens/Login';
 import Home from '@/screens/Home';
 
 import NovaOcorrencia from '@/screens/NovaOcorrencia';
+import DetalhesOcorrencia from '@/screens/DetalhesOcorrencia';
 
 export type RootStackParamList = {
     Login: undefined;
     Home: undefined;
     NovaOcorrencia: undefined;
+    DetalhesOcorrencia: {
+        ocorrenciaId: number;
+    };
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -49,6 +53,11 @@ export default function AppRoutes({
                 <Stack.Screen
                     name="NovaOcorrencia"
                     component={NovaOcorrencia}
+                />
+
+                <Stack.Screen
+                    name="DetalhesOcorrencia"
+                    component={DetalhesOcorrencia}
                 />
 
             </Stack.Navigator>
