@@ -135,6 +135,52 @@ const style = StyleSheet.create({
         lineHeight: 36,
     },
 
+    zoomControls: {
+        position: 'absolute',
+
+        right: 20,
+        top: 600,
+
+        gap: 8,
+
+        zIndex: 100,
+
+        elevation: 100,
+    },
+
+    zoomButton: {
+        width: 45,
+        height: 45,
+
+        backgroundColor: '#FFFFFF',
+
+        borderRadius: 10,
+
+        alignItems: 'center',
+        justifyContent: 'center',
+        zIndex: 101,
+        elevation: 5,
+
+        shadowOffset: {
+            width: 0,
+            height: 2,
+        },
+
+        shadowOpacity: 0.2,
+
+        shadowRadius: 3,
+    },
+
+    zoomButtonText: {
+        fontSize: 28,
+
+        color: '#00263D',
+
+        fontWeight: '500',
+
+        lineHeight: 32,
+    },
+
 
 });
 

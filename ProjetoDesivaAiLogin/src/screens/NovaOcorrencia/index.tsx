@@ -1,5 +1,4 @@
 import { useState } from 'react';
-
 import {
     View,
     Text,
@@ -12,118 +11,32 @@ import {
 
 import * as Location from 'expo-location';
 
-import {
-    NativeStackScreenProps
-} from '@react-navigation/native-stack';
-
-import {
-    RootStackParamList
-} from '@/navigation/AppRoutes';
-
-import {
-    SafeAreaView
-} from 'react-native-safe-area-context';
-
+import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { RootStackParamList } from '@/navigation/AppRoutes';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import * as ImagePicker from 'expo-image-picker';
-
-import {
-    cadastrarOcorrencia
-} from '@/database/ocorrenciaRepository';
-
-import {
-    obterSessao
-} from '@/services/session';
-
+import { cadastrarOcorrencia } from '@/database/ocorrenciaRepository';
+import { obterSessao } from '@/services/session';
 import { style } from './style';
-
 
 type Props = NativeStackScreenProps<
     RootStackParamList,
     'NovaOcorrencia'
 >;
 
-
 export default function NovaOcorrencia({
     navigation
 }: Props) {
-
-
-    /*
-     * =========================================================
-     * ESTADOS
-     * =========================================================
-     */
-
-    const [
-        localizacao,
-        setLocalizacao
-    ] =
-        useState<Location.LocationObject | null>(null);
-
-
-    const [
-        carregandoLocalizacao,
-        setCarregandoLocalizacao
-    ] =
-        useState(false);
-
-
-    const [
-        foto,
-        setFoto
-    ] =
-        useState<string | null>(null);
-
-
-    const [
-        descricao,
-        setDescricao
-    ] =
-        useState('');
-
-
-    const [
-        modoLocalizacao,
-        setModoLocalizacao
-    ] =
-        useState<'GPS' | 'ENDERECO'>('GPS');
-
-
-    const [
-        cep,
-        setCep
-    ] =
-        useState('');
-
-
-    const [
-        endereco,
-        setEndereco
-    ] =
-        useState('');
-
-
-    const [
-        numero,
-        setNumero
-    ] =
-        useState('');
-
-
-    const [
-        bairro,
-        setBairro
-    ] =
-        useState('');
-
-
-    const [
-        complemento,
-        setComplemento
-    ] =
-        useState('');
-
-
+    const [localizacao, setLocalizacao] = useState<Location.LocationObject | null>(null);
+    const [carregandoLocalizacao, setCarregandoLocalizacao] = useState(false);
+    const [foto, setFoto] = useState<string | null>(null);
+    const [descricao, setDescricao] = useState('');
+    const [modoLocalizacao, setModoLocalizacao] = useState<'GPS' | 'ENDERECO'>('GPS');
+    const [cep, setCep] = useState('');
+    const [endereco, setEndereco] = useState('');
+    const [numero, setNumero] = useState('');
+    const [bairro, setBairro] = useState('');
+    const [complemento, setComplemento] = useState('');
     /*
      * =========================================================
      * OBTER LOCALIZAÇÃO DO GPS
@@ -257,33 +170,23 @@ export default function NovaOcorrencia({
         }
     }
 
-
     /*
      * =========================================================
      * CONSULTAR CEP
      * =========================================================
      */
-
-    async function buscarCep(
-        cepDigitado: string
-    ) {
+    async function buscarCep(cepDigitado: string) {
 
         const cepLimpo =
             cepDigitado.replace(/\D/g, '');
 
+        /*
+         * CEP precisa possuir exatamente
+         * 8 números.
+         */
         if (cepLimpo.length !== 8) {
             return;
         }
-
-        /*
-         * Mantém o CEP formatado imediatamente.
-         * Mesmo que a API falhe, ele continuará
-         * disponível para salvar no banco.
-         */
-        const cepFormatado =
-            `${cepLimpo.slice(0, 5)}-${cepLimpo.slice(5, 8)}`;
-
-        setCep(cepFormatado);
 
         try {
 
@@ -294,11 +197,17 @@ export default function NovaOcorrencia({
 
             const resposta =
                 await fetch(
-                    `https://viacep.com.br/ws/${cepLimpo}/json/`
+                    `https://consultadecep.com/ws/${cepLimpo}/json/`,
+                    {
+                        method: 'GET',
+                        headers: {
+                            Accept: 'application/json'
+                        }
+                    }
                 );
 
             console.log(
-                'Status ViaCEP:',
+                'Status ConsultaCEP:',
                 resposta.status
             );
 
@@ -314,12 +223,12 @@ export default function NovaOcorrencia({
                 await resposta.json();
 
             console.log(
-                'Resposta ViaCEP:',
+                'Resposta ConsultaCEP:',
                 dados
             );
 
             /*
-             * CEP válido, mas não encontrado.
+             * CEP válido, porém inexistente.
              */
             if (dados.erro) {
 
@@ -332,47 +241,41 @@ export default function NovaOcorrencia({
             }
 
             /*
-             * Mantém o CEP retornado pela API.
+             * CEP
              */
             setCep(
-                dados.cep ??
-                cepFormatado
+                dados.cep ?? cepDigitado
             );
 
+
             /*
-             * Preenche endereço.
+             * Rua
              */
             setEndereco(
-                dados.logradouro ??
-                ''
+                dados.logradouro ?? ''
             );
 
+
             /*
-             * Preenche bairro.
+             * Bairro
              */
             setBairro(
-                dados.bairro ??
-                ''
+                dados.bairro ?? ''
             );
 
             /*
-             * O ViaCEP não informa número.
+             * Número
              */
             setNumero('');
 
-            /*
-             * Complemento será informado
-             * pelo usuário.
-             */
-            setComplemento('');
 
             console.log(
-                'Endereço:',
+                'Endereço encontrado:',
                 dados.logradouro
             );
 
             console.log(
-                'Bairro:',
+                'Bairro encontrado:',
                 dados.bairro
             );
 
@@ -392,62 +295,37 @@ export default function NovaOcorrencia({
                 'Erro ao consultar CEP:',
                 error
             );
-
-            /*
-             * IMPORTANTE:
-             *
-             * Não apagamos o CEP.
-             *
-             * O usuário pode continuar preenchendo
-             * endereço, número e bairro manualmente.
-             */
-
-            setCep(cepFormatado);
-
-            Alert.alert(
-                'CEP',
-                'Não foi possível consultar o endereço automaticamente. O CEP foi mantido e você pode preencher os dados manualmente.'
-            );
         }
     }
-
-
-    /*
-     * =========================================================
-     * TRANSFORMAR ENDEREÇO EM COORDENADAS
-     * =========================================================
-     */
 
     async function obterCoordenadasDoEndereco() {
 
         try {
 
-            if (
-                !endereco.trim()
-            ) {
+            if (!endereco.trim()) {
 
                 Alert.alert(
                     'Atenção',
                     'Informe o endereço da ocorrência.'
                 );
 
-                return false;
+                return null;
             }
 
-
-            if (
-                !numero.trim()
-            ) {
+            if (!numero.trim()) {
 
                 Alert.alert(
                     'Atenção',
                     'Informe o número do endereço.'
                 );
 
-                return false;
+                return null;
             }
 
-
+            /*
+             * Monta o endereço completo
+             * para realizar a geocodificação.
+             */
             const enderecoCompleto =
                 `${endereco}, ${numero}, ${bairro}, ${cep}, Brasil`;
 
@@ -469,29 +347,24 @@ export default function NovaOcorrencia({
                 resultados
             );
 
-
-            if (
-                resultados.length === 0
-            ) {
+            if (resultados.length === 0) {
 
                 Alert.alert(
                     'Endereço não encontrado',
                     'Não foi possível localizar esse endereço. Verifique os dados informados.'
                 );
 
-                return false;
+                return null;
             }
 
 
             const coordenadas =
                 resultados[0];
 
-
             /*
-             * Guarda as coordenadas encontradas.
+             * Cria o objeto de localização.
              */
-
-            setLocalizacao({
+            const novaLocalizacao: Location.LocationObject = {
 
                 coords: {
 
@@ -505,7 +378,7 @@ export default function NovaOcorrencia({
                         null,
 
                     accuracy:
-                        coordenadas.accuracy ?? 0,
+                        null,
 
                     altitudeAccuracy:
                         null,
@@ -521,7 +394,14 @@ export default function NovaOcorrencia({
                 timestamp:
                     Date.now()
 
-            });
+            };
+
+            /*
+             * Atualiza o estado para a tela.
+             */
+            setLocalizacao(
+                novaLocalizacao
+            );
 
 
             console.log(
@@ -530,8 +410,15 @@ export default function NovaOcorrencia({
                 coordenadas.longitude
             );
 
-
-            return true;
+            /*
+             * IMPORTANTE:
+             *
+             * Retornamos a localização imediatamente
+             * para o handleSalvar().
+             *
+             * Assim não dependemos do setState.
+             */
+            return novaLocalizacao;
 
 
         } catch (error) {
@@ -548,10 +435,9 @@ export default function NovaOcorrencia({
             );
 
 
-            return false;
+            return null;
         }
     }
-
 
     /*
      * =========================================================
@@ -623,7 +509,6 @@ export default function NovaOcorrencia({
             );
         }
     }
-
 
     /*
      * =========================================================
@@ -706,14 +591,30 @@ export default function NovaOcorrencia({
     async function handleSalvar() {
 
         try {
+            /*
+            * =========================================================
+            * DETERMINAR LOCALIZAÇÃO FINAL
+            * =========================================================
+            */
+
+            let localizacaoFinal:
+                Location.LocationObject | null =
+                null;
 
             /*
-             * GPS
+             * =========================================================
+             * MODO GPS
+             * =========================================================
              */
 
             if (
                 modoLocalizacao === 'GPS'
             ) {
+
+                /*
+                 * No GPS a localização precisa
+                 * ter sido obtida anteriormente.
+                 */
 
                 if (
                     !localizacao
@@ -727,18 +628,34 @@ export default function NovaOcorrencia({
                     return;
                 }
 
+                /*
+                 * A localização do GPS será
+                 * utilizada diretamente.
+                 */
+
+                localizacaoFinal =
+                    localizacao;
+
             }
 
-
             /*
-             * ENDEREÇO MANUAL
+             * =========================================================
+             * MODO ENDEREÇO
+             * =========================================================
              */
 
             else {
+                /*
+                 * Converte o endereço informado
+                 * em latitude e longitude.
+                 */
 
                 const enderecoLocalizado =
                     await obterCoordenadasDoEndereco();
 
+                /*
+                 * Não conseguiu localizar o endereço.
+                 */
 
                 if (
                     !enderecoLocalizado
@@ -746,11 +663,42 @@ export default function NovaOcorrencia({
 
                     return;
                 }
+
+                /*
+                 * IMPORTANTE:
+                 *
+                 * Usamos diretamente o resultado
+                 * retornado pelo geocoding.
+                 *
+                 * Não dependemos do setState().
+                 */
+
+                localizacaoFinal =
+                    enderecoLocalizado;
             }
 
+            /*
+             * =========================================================
+             * GARANTIA DE LOCALIZAÇÃO
+             * =========================================================
+             */
+
+            if (
+                !localizacaoFinal
+            ) {
+
+                Alert.alert(
+                    'Erro',
+                    'Não foi possível determinar a localização da ocorrência.'
+                );
+
+                return;
+            }
 
             /*
+             * =========================================================
              * FOTO
+             * =========================================================
              */
 
             if (
@@ -825,24 +773,6 @@ export default function NovaOcorrencia({
             }
 
 
-            /*
-             * SEGURANÇA
-             *
-             * Neste ponto a localização precisa existir.
-             */
-
-            if (
-                !localizacao
-            ) {
-
-                Alert.alert(
-                    'Erro',
-                    'Não foi possível determinar a localização da ocorrência.'
-                );
-
-                return;
-            }
-
 
             /*
              * CADASTRA NO SQLITE
@@ -854,10 +784,10 @@ export default function NovaOcorrencia({
                     sessao.id,
 
                 latitude:
-                    localizacao.coords.latitude,
+                    localizacaoFinal.coords.latitude,
 
                 longitude:
-                    localizacao.coords.longitude,
+                    localizacaoFinal.coords.longitude,
 
                 cep:
                     cep.trim(),

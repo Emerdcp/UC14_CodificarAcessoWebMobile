@@ -97,16 +97,16 @@ export default function DetalhesOcorrencia({
                 ocorrenciaId
             );
 
-            const atualizada =
-                await buscarOcorrenciaPorId(
-                    ocorrenciaId
-                );
-
-            setOcorrencia(atualizada);
-
             Alert.alert(
-                'Obrigado!',
-                'Sua curtida foi registrada.'
+                'Obrigado! 👍',
+                'Sua curtida foi registrada.',
+                [
+                    {
+                        text: 'OK',
+                        onPress: () =>
+                            navigation.goBack()
+                    }
+                ]
             );
 
         } catch (error) {
@@ -137,7 +137,51 @@ export default function DetalhesOcorrencia({
                     ocorrenciaId
                 );
 
+            if (!atualizada) {
+                return;
+            }
+
             setOcorrencia(atualizada);
+
+            /*
+             * Se chegou a 3 confirmações,
+             * a ocorrência foi resolvida.
+             */
+            if (
+                atualizada.confirmacoes_resolvido >= 3 &&
+                atualizada.status === 'RESOLVIDA'
+            ) {
+
+                Alert.alert(
+                    'Problema resolvido! ✅',
+                    'A ocorrência foi marcada como resolvida.',
+                    [
+                        {
+                            text: 'OK',
+                            onPress: () =>
+                                navigation.goBack()
+                        }
+                    ]
+                );
+
+                return;
+            }
+
+            /*
+             * Confirmação registrada,
+             * mas ainda não chegou em 3.
+             */
+            Alert.alert(
+                'Confirmação registrada! 👍',
+                'Sua confirmação foi registrada.',
+                [
+                    {
+                        text: 'OK',
+                        onPress: () =>
+                            navigation.goBack()
+                    }
+                ]
+            );
 
         } catch (error) {
 
@@ -146,9 +190,12 @@ export default function DetalhesOcorrencia({
                 error
             );
 
+            Alert.alert(
+                'Erro',
+                'Não foi possível registrar a confirmação.'
+            );
         }
     }
-
 
     return (
 
@@ -297,22 +344,6 @@ export default function DetalhesOcorrencia({
                             marginTop: 8
                         }}
                     >
-
-                        {/* <Text style={style.info}>
-
-                            Latitude:{' '}
-                            {ocorrencia.latitude.toFixed(6)}
-
-                        </Text>
-
-
-                        <Text style={style.info}>
-
-                            Longitude:{' '}
-                            {ocorrencia.longitude.toFixed(6)}
-
-                        </Text> */}
-
                     </View>
 
                 </View>

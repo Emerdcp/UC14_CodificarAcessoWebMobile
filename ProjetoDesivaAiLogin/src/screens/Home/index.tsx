@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
 import {
     View,
@@ -34,11 +34,9 @@ type Props = NativeStackScreenProps<
 
 export default function Home({ navigation }: Props) {
 
-    // const [ocorrencias, setOcorrencias] = useState<any[]>([]);
+    const mapRef = useRef<MapView | null>(null);
     const [ocorrencias, setOcorrencias] = useState<Ocorrencia[]>([]);
-
-    const [location, setLocation] =
-        useState<Location.LocationObject | null>(null);
+    const [location, setLocation] = useState<Location.LocationObject | null>(null);
 
     useFocusEffect(
         useCallback(() => {
@@ -72,41 +70,29 @@ export default function Home({ navigation }: Props) {
 
         }, [])
     );
-
     useEffect(() => {
-
         async function obterLocalizacao() {
-
             try {
-
                 const { status } =
                     await Location.requestForegroundPermissionsAsync();
-
                 if (status !== 'granted') {
-
                     Alert.alert(
                         'Permissão necessária',
                         'Precisamos da sua localização para mostrar sua posição no mapa.'
                     );
-
                     return;
                 }
-
                 const localizacao =
                     await Location.getCurrentPositionAsync({
                         accuracy:
                             Location.Accuracy.High
                     });
-
                 setLocation(localizacao);
-
             } catch (error) {
-
                 console.error(
                     'Erro ao obter localização:',
                     error
                 );
-
                 Alert.alert(
                     'Erro',
                     'Não foi possível obter sua localização.'
@@ -156,15 +142,62 @@ export default function Home({ navigation }: Props) {
 
             </View>
 
+            <View style={style.zoomControls}>
+
+                <TouchableOpacity
+                    style={style.zoomButton}
+                    onPress={() => {
+                        mapRef.current?.getCamera().then(camera => {
+                            if (camera) {
+                                mapRef.current?.animateCamera({
+                                    ...camera,
+                                    zoom: (camera.zoom ?? 15) + 1,
+                                });
+                            }
+                        });
+                    }}
+                >
+                    <Text style={style.zoomButtonText}>+</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                    style={style.zoomButton}
+                    onPress={() => {
+                        mapRef.current?.getCamera().then(camera => {
+                            if (camera) {
+                                mapRef.current?.animateCamera({
+                                    ...camera,
+                                    zoom: Math.max(
+                                        (camera.zoom ?? 15) - 1,
+                                        1
+                                    ),
+                                });
+                            }
+                        });
+                    }}
+                >
+                    <Text style={style.zoomButtonText}>−</Text>
+                </TouchableOpacity>
+
+            </View>
+
             <View style={style.content}>
 
                 {location && (
 
                     <MapView
+                        ref={mapRef}
                         style={style.map}
                         provider={PROVIDER_GOOGLE}
-                        showsUserLocation
-                        showsMyLocationButton
+
+                        showsUserLocation={true}
+                        showsMyLocationButton={true}
+
+                        zoomEnabled={true}
+                        zoomControlEnabled={false}
+                        scrollEnabled={true}
+                        rotateEnabled={true}
+
                         initialRegion={{
                             latitude:
                                 location.coords.latitude,
