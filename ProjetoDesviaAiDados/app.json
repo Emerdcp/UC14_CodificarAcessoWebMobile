@@ -1,0 +1,36 @@
+{
+  "expo": {
+    "name": "ProjetoDesivaAiDados",
+    "slug": "ProjetoDesivaAiDados",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "newArchEnabled": true,
+    "ios": {
+      "supportsTablet": true
+    },
+    "android": {
+      "package": "com.desviaai.app",
+      "config": {
+        "googleMaps": {
+          "apiKey": "AIzaSyBc3_TT_j1tDaUMXwe5Ksn6IfF4xxwxkXg"
+        }
+      },
+      "edgeToEdgeEnabled": true,
+      "predictiveBackGestureEnabled": false
+    },
+    "plugins": [
+      "expo-secure-store",
+      "@react-native-google-signin/google-signin",
+      "expo-sqlite",
+      "expo-image-picker"
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "4f82b96c-177a-44b5-8c74-3257143c71fb"
+      }
+    },
+    "owner": "emerdcp"
+  }
+}

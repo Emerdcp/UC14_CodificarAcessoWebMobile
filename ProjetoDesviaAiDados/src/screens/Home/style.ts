@@ -1,0 +1,187 @@
+import { StyleSheet } from 'react-native';
+
+import {
+    colors,
+    spacing,
+    typography,
+} from '@/theme';
+
+const style = StyleSheet.create({
+
+    container: {
+        flex: 1,
+        backgroundColor: colors.background,
+    },
+
+    header: {
+        height: 94,
+
+        backgroundColor: colors.secondary,
+
+        alignItems: 'center',
+        justifyContent: 'center',
+
+        paddingHorizontal: spacing.lg,
+        paddingTop: 25,
+    },
+
+    headerTitle: {
+        fontSize: typography.title,
+        fontWeight: '700',
+
+        color: colors.white,
+        transform: [
+            { translateY: 15 }
+        ],
+    },
+
+    mapContainer: {
+        flex: 1,
+
+        overflow: 'hidden',
+    },
+
+    map: {
+        flex: 1,
+        width: '100%',
+    },
+
+    footer: {
+        paddingHorizontal: spacing.lg,
+        paddingTop: spacing.md,
+        paddingBottom: spacing.lg,
+
+        backgroundColor: colors.background,
+    },
+
+    content: {
+        flex: 1,
+
+        alignItems: 'center',
+        justifyContent: 'center',
+
+        paddingHorizontal: 20,
+    },
+
+    locationIcon: {
+        fontSize: 50,
+
+        marginBottom: 10,
+    },
+
+    mapPlaceholder: {
+        fontSize: 20,
+        fontWeight: '600',
+
+        color: '#64748B',
+    },
+
+
+    logoutButton: {
+        height: 50,
+
+        backgroundColor: '#071B33',
+
+        borderRadius: 10,
+
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+
+    logoutButtonText: {
+        color: '#FFFFFF',
+
+        fontSize: 16,
+        fontWeight: '700',
+    },
+    loadingMap: {
+        textAlign: 'center',
+        marginTop: 20,
+    },
+    addButton: {
+        position: 'absolute',
+
+        right: 20,
+        bottom: 90,
+
+        width: 58,
+        height: 58,
+
+        borderRadius: 29,
+
+        backgroundColor: '#00243A',
+
+        alignItems: 'center',
+        justifyContent: 'center',
+
+        elevation: 6,
+
+        shadowOffset: {
+            width: 0,
+            height: 3,
+        },
+
+        shadowOpacity: 0.25,
+
+        shadowRadius: 4,
+    },
+
+    addButtonText: {
+        color: '#FFFFFF',
+
+        fontSize: 32,
+        fontWeight: '300',
+
+        lineHeight: 36,
+    },
+
+    zoomControls: {
+        position: 'absolute',
+
+        right: 20,
+        top: 600,
+
+        gap: 8,
+
+        zIndex: 100,
+
+        elevation: 100,
+    },
+
+    zoomButton: {
+        width: 45,
+        height: 45,
+
+        backgroundColor: '#FFFFFF',
+
+        borderRadius: 10,
+
+        alignItems: 'center',
+        justifyContent: 'center',
+        zIndex: 101,
+        elevation: 5,
+
+        shadowOffset: {
+            width: 0,
+            height: 2,
+        },
+
+        shadowOpacity: 0.2,
+
+        shadowRadius: 3,
+    },
+
+    zoomButtonText: {
+        fontSize: 28,
+
+        color: '#00263D',
+
+        fontWeight: '500',
+
+        lineHeight: 32,
+    },
+
+
+});
+
+export { style };
